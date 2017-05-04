@@ -71,8 +71,18 @@ class XButton extends Component {
   }
 }
 
+class Dieter extends Component {
+
+	render() {
+		return (
+		  <img src="dieter.png" />
+		);
+	}
+}
+
 customElements.define('x-window', XWindow);
 customElements.define('x-button', XButton);
+customElements.define('onzen-dieter', Dieter);
 
 // VDOM
 
