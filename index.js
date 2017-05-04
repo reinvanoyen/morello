@@ -66,7 +66,7 @@ class XButton extends Component {
 
   render() {
     return (
-      <button>{this.getAttribute('text')}</button>
+      <button>{this.getAttribute('text') || 'Default button text'}</button>
     );
   }
 }

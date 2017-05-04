@@ -81,7 +81,7 @@ class XButton extends Component {
     return h(
       'button',
       null,
-      this.getAttribute('text')
+      this.getAttribute('text') || 'Default button text'
     );
   }
 }
