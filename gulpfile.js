@@ -1,11 +1,20 @@
 const gulp = require('gulp');
-const babel = require('gulp-babel');
+const browserify = require('browserify');
+const source = require('vinyl-source-stream');
 
-gulp.task('build', function(){
-  return gulp.src('src/jsx/*.jsx')
-    .pipe(babel({
-      plugins: ['transform-react-jsx']
-    }))
-    .pipe(gulp.dest('src/js/'))
+gulp.task('build', () => {
+
+  return browserify( 'index.js' )
+    .transform('babelify', {
+      plugins: [
+        'transform-es2015-modules-commonjs',
+        ['transform-react-jsx', {
+          "pragma": 'h'
+        }]
+      ]
+    })
+    .bundle()
+    .pipe( source('index.js') )
+    .pipe( gulp.dest( 'build' ) )
   ;
 });
