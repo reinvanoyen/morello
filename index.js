@@ -13,15 +13,25 @@ class XTodo extends Component {
     ];
   }
 
+  addItem() {
+    this.model.items.push( 'nice' );
+    this.refresh();
+  }
+
+  removeItem() {
+    this.model.items.pop();
+    this.refresh();
+  }
+
   render() {
 
     return (
         <div>
           <x-window title="Todo demo">
-            {this.model.items.map(function(listValue){
-              return <div>{listValue}</div>;
+            {this.model.items.map(listValue => {
+              return <div>{listValue}<button onClick={this.removeItem}>x</button></div>;
             })}
-            <button></button>
+            <button onClick={this.addItem}>Add</button>
           </x-window>
         </div>
     );

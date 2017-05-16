@@ -11,6 +11,16 @@ class XTodo extends _morello.Component {
     this.model.items = ['een item', 'nog een item'];
   }
 
+  addItem() {
+    this.model.items.push('nice');
+    this.refresh();
+  }
+
+  removeItem() {
+    this.model.items.pop();
+    this.refresh();
+  }
+
   render() {
 
     return (0, _morello.morello)(
@@ -19,13 +29,23 @@ class XTodo extends _morello.Component {
       (0, _morello.morello)(
         "x-window",
         { title: "Todo demo" },
-        this.model.items.map(function (listValue) {
+        this.model.items.map(listValue => {
           return (0, _morello.morello)(
             "div",
             null,
-            listValue
+            listValue,
+            (0, _morello.morello)(
+              "button",
+              { onClick: this.removeItem },
+              "x"
+            )
           );
-        })
+        }),
+        (0, _morello.morello)(
+          "button",
+          { onClick: this.addItem },
+          "Add"
+        )
       )
     );
   }
