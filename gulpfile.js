@@ -9,7 +9,7 @@ gulp.task('build', () => {
       plugins: [
         'transform-es2015-modules-commonjs',
         ['transform-react-jsx', {
-          "pragma": 'h'
+          "pragma": 'morello'
         }]
       ]
     })
