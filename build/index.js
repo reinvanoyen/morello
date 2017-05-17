@@ -3,48 +3,140 @@
 
 var _morello = require("./src/morello");
 
+class XStringView extends _morello.Component {
+
+  constructor() {
+    super();
+    this.model = {};
+  }
+
+  static get observedAttributes() {
+    return ['field'];
+  }
+
+  render() {
+
+    const model = this.model;
+    const field = this.getAttribute('field');
+
+    return (0, _morello.morello)(
+      "span",
+      null,
+      model[field] ? 'test' : 'lol'
+    );
+  }
+}
+
+class XTodoItem extends _morello.Component {
+
+  constructor() {
+    super();
+    this.model = {
+      editMode: false,
+      isDone: false
+    };
+  }
+
+  static get observedAttributes() {
+    return ['text'];
+  }
+
+  enableEditMode() {
+    this.model.editMode = true;
+    this.refresh();
+  }
+
+  stateChange(e) {
+    this.model.isDone = this._shadowRoot.querySelector('.state-change').checked;
+    this.refresh();
+  }
+
+  updateText() {
+    this.model.editMode = false;
+    this.setAttribute('text', this._shadowRoot.querySelector('.edit-field').value);
+  }
+
+  render() {
+
+    const model = this.model;
+    const text = this.getAttribute('text');
+
+    return (0, _morello.morello)(
+      "span",
+      null,
+      (0, _morello.morello)("input", { type: "checkbox", checked: model.isDone, onClick: this.stateChange, "class": "state-change" }),
+      model.editMode ? (0, _morello.morello)("input", { "class": "edit-field", value: text, onBlur: this.updateText }) : (0, _morello.morello)(
+        "span",
+        { onDblClick: this.enableEditMode, style: 'color: ' + (model.isDone ? 'green' : 'black') + ';' },
+        text + (model.isDone ? ' (done)' : '')
+      )
+    );
+  }
+}
+
 class XTodo extends _morello.Component {
 
   constructor() {
     super();
-    this.model.text = 'ok';
-    this.model.items = ['een item', 'nog een item'];
+    this.model = {
+      items: ['nice']
+    };
   }
 
-  addItem() {
-    this.model.items.push('nice');
+  addItem(text) {
+
+    this.model.items.push(text);
     this.refresh();
   }
 
-  removeItem() {
-    this.model.items.pop();
-    this.refresh();
+  removeItem(index) {
+    if (window.confirm('Are you sure you wish to remove "' + this.model.items[index] + '" ?')) {
+      this.model.items.splice(index, 1);
+      this.refresh();
+    }
   }
 
   render() {
+
+    const items = this.model.items;
 
     return (0, _morello.morello)(
       "div",
       null,
       (0, _morello.morello)(
         "x-window",
-        { title: "Todo demo" },
-        this.model.items.map(listValue => {
-          return (0, _morello.morello)(
-            "div",
-            null,
-            listValue,
-            (0, _morello.morello)(
-              "button",
-              { onClick: this.removeItem },
-              "x"
-            )
-          );
-        }),
+        { title: 'Todo demo (' + items.length + ')' },
+        items.length ? (0, _morello.morello)(
+          "div",
+          null,
+          items.map((item, i) => {
+            return (0, _morello.morello)(
+              "div",
+              { key: i },
+              (0, _morello.morello)("x-todo-item", { text: item }),
+              (0, _morello.morello)(
+                "button",
+                { onClick: () => this.removeItem(i) },
+                "x"
+              )
+            );
+          })
+        ) : (0, _morello.morello)(
+          "div",
+          null,
+          "Your todo list is empty."
+        ),
         (0, _morello.morello)(
-          "button",
-          { onClick: this.addItem },
-          "Add"
+          "form",
+          { onSubmit: e => {
+              this.addItem(this._shadowRoot.querySelector('.field').value);e.preventDefault();
+            } },
+          (0, _morello.morello)("input", { "class": "field" }),
+          (0, _morello.morello)(
+            "button",
+            null,
+            "Add"
+          )
         )
       )
     );
@@ -90,24 +182,10 @@ class XWindow extends _morello.Component {
   }
 }
 
-class XButton extends _morello.Component {
-
-  static get observedAttributes() {
-    return ['text'];
-  }
-
-  render() {
-    return (0, _morello.morello)(
-      "button",
-      null,
-      this.getAttribute('text') || 'Default button text'
-    );
-  }
-}
-
 customElements.define('x-todo', XTodo);
+customElements.define('x-todo-item', XTodoItem);
+customElements.define('x-string-view', XStringView);
 customElements.define('x-window', XWindow);
-customElements.define('x-button', XButton);
 
 },{"./src/morello":5}],2:[function(require,module,exports){
 "use strict";
@@ -196,7 +274,7 @@ const diffpatch = {
   },
   updateAttribute: function ($target, name, newVal, oldVal) {
     if (!newVal) {
-      _vdoc2.default.removeAttribute($target, name);
+      _vdoc2.default.removeAttribute($target, name, newVal);
     } else if (!oldVal || newVal !== oldVal) {
       _vdoc2.default.setAttribute($target, name, newVal);
     }
@@ -308,17 +386,34 @@ const vdocument = {
   },
   setAttribute: function ($target, name, value) {
 
+    // is custom attribute
     if (vdocument.isCustomAttribute(name)) {
       return;
     }
 
+    // is boolean attribute
+    if (typeof value === 'boolean') {
+
+      if (!value) {
+        return;
+      } else {
+        $target[name] = true;
+      }
+    }
+
+    // is class attribute
     if (name === 'className') {
       name = 'class';
     }
 
     $target.setAttribute(name, value);
   },
-  removeAttribute: function ($target, name) {
+  removeAttribute: function ($target, name, newVal) {
+
+    if (typeof newVal === 'boolean') {
+      $target[name] = false;
+    }
+
     if (name === 'className') {
       name = 'class';
     }

@@ -33,17 +33,34 @@ const vdocument = {
   },
   setAttribute: function($target, name, value) {
 
+    // is custom attribute
     if (vdocument.isCustomAttribute(name)) {
       return;
     }
 
+    // is boolean attribute
+    if ( typeof value === 'boolean' ) {
+
+      if (!value) {
+        return;
+      } else {
+        $target[name] = true;
+      }
+    }
+
+    // is class attribute
     if (name === 'className') {
       name = 'class';
     }
 
     $target.setAttribute(name, value);
   },
-  removeAttribute: function($target, name) {
+  removeAttribute: function($target, name, newVal) {
+
+    if ( typeof newVal === 'boolean' ) {
+      $target[name] = false;
+    }
+
     if (name === 'className') {
       name = 'class';
     }

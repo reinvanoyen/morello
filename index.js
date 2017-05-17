@@ -2,36 +2,130 @@
 
 import { morello, Component } from "./src/morello";
 
-class XTodo extends Component {
+class XStringView extends Component {
 
   constructor() {
     super();
-    this.model.text = 'ok';
-    this.model.items = [
-        'een item',
-        'nog een item'
-    ];
+    this.model = {};
   }
 
-  addItem() {
-    this.model.items.push( 'nice' );
-    this.refresh();
-  }
-
-  removeItem() {
-    this.model.items.pop();
-    this.refresh();
+  static get observedAttributes() {
+    return [ 'field' ];
   }
 
   render() {
 
+    const model = this.model;
+    const field = this.getAttribute('field');
+
+    return (
+        <span>{model[field] ? 'test' : 'lol' }</span>
+    );
+  }
+}
+
+class XTodoItem extends Component {
+
+  constructor() {
+    super();
+    this.model = {
+      editMode: false,
+      isDone: false
+    };
+  }
+
+  static get observedAttributes() {
+    return [ 'text' ];
+  }
+
+  enableEditMode() {
+    this.model.editMode = true;
+    this.refresh();
+  }
+
+  stateChange(e) {
+    this.model.isDone = this._shadowRoot.querySelector( '.state-change' ).checked;
+    this.refresh();
+  }
+
+  updateText() {
+    this.model.editMode = false;
+    this.setAttribute('text', this._shadowRoot.querySelector('.edit-field').value);
+  }
+
+  render() {
+
+    const model = this.model;
+    const text = this.getAttribute('text');
+
+    return (
+      <span>
+        <input type="checkbox" checked={model.isDone} onClick={this.stateChange} class="state-change" />
+        { model.editMode
+          ?
+          <input class="edit-field" value={text} onBlur={this.updateText} />
+          :
+          (
+            <span onDblClick={this.enableEditMode} style={ 'color: ' + ( model.isDone ? 'green' : 'black' ) + ';' }>
+                {text + ( model.isDone ? ' (done)' : '' )}
+            </span>
+          )
+        }
+      </span>
+    );
+  }
+}
+
+class XTodo extends Component {
+
+  constructor() {
+    super();
+    this.model = {
+      items: [
+        'nice'
+      ]
+    };
+  }
+
+  addItem( text ) {
+
+    this.model.items.push( text );
+    this.refresh();
+  }
+
+  removeItem( index ) {
+    if( window.confirm('Are you sure you wish to remove "' + this.model.items[ index ] + '" ?') ) {
+      this.model.items.splice(index, 1);
+      this.refresh();
+    }
+  }
+
+  render() {
+
+    const items = this.model.items;
+
     return (
         <div>
-          <x-window title="Todo demo">
-            {this.model.items.map(listValue => {
-              return <div>{listValue}<button onClick={this.removeItem}>x</button></div>;
-            })}
-            <button onClick={this.addItem}>Add</button>
+          <x-window title={'Todo demo (' + items.length + ')'}>
+            { items.length
+              ?
+                <div>
+                  {items.map( ( item, i ) => {
+                    return (
+                      <div key={i}>
+                        <x-todo-item text={item}></x-todo-item>
+                        <button onClick={()=>this.removeItem(i)}>x</button>
+                      </div>
+                    );
+                  } )}
+                </div>
+              :
+                <div>Your todo list is empty.</div>
+            }
+            <form onSubmit={(e)=>{ this.addItem(this._shadowRoot.querySelector('.field').value); e.preventDefault(); }}>
+              <input class="field" />
+              <button>Add</button>
+            </form>
           </x-window>
         </div>
     );
@@ -75,19 +169,7 @@ class XWindow extends Component {
   }
 }
 
-class XButton extends Component {
-
-  static get observedAttributes() {
-    return ['text'];
-  }
-
-  render() {
-    return (
-      <button>{this.getAttribute('text') || 'Default button text'}</button>
-    );
-  }
-}
-
 customElements.define('x-todo', XTodo);
+customElements.define('x-todo-item', XTodoItem);
+customElements.define('x-string-view', XStringView);
 customElements.define('x-window', XWindow);
-customElements.define('x-button', XButton);

@@ -38,7 +38,7 @@ const diffpatch = {
   },
   updateAttribute: function($target, name, newVal, oldVal) {
     if (!newVal) {
-      vdoc.removeAttribute($target, name);
+      vdoc.removeAttribute($target, name, newVal);
     } else if (!oldVal || newVal !== oldVal) {
       vdoc.setAttribute($target, name, newVal);
     }
