@@ -5,7 +5,7 @@ import util from "./util";
 const vdocument = {
   createElement: function(node, $currentComponent = null) {
 
-    if (typeof node === 'string') {
+    if (typeof node === 'string' || typeof node === 'number') {
       return document.createTextNode(node);
     }
 

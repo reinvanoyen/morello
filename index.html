@@ -1,13 +1,27 @@
 <html>
-<head>
-	<title>Test</title>
-</head>
-<body>
-	<script src="build/index.js"></script>
-	<x-todo></x-todo>
 
-	<x-string-view field="name"></x-string-view>
-	<x-string-view field="age"></x-string-view>
+	<head>
+		<title>Test</title>
+	</head>
+
+	<script src="build/index.js"></script>
+
+	<x-fetch>
+
+		<x-window title="Users">
+			<x-save slot="header" text="Save all"></x-save>
+			<x-repeat>
+				<x-row>
+					<x-string-view field="id"></x-string-view>
+					<x-string-view field="name"></x-string-view>
+					<x-string-view field="age"></x-string-view>
+					<x-save text="Save row"></x-save>
+				</x-row>
+			</x-repeat>
+		</x-window>
+
+	</x-fetch>
 
 </body>
+
 </html>

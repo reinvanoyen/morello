@@ -3,191 +3,265 @@
 
 var _morello = require("./src/morello");
 
-class XStringView extends _morello.Component {
+var _observable = require("./src/obs/observable");
+
+var _observable2 = _interopRequireDefault(_observable);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+let obj = [{ name: 'rein' }, { name: 'jos' }];
+
+let obs = new _observable2.default(obj, res => {
+  console.log(res);
+});
+
+class XSave extends _morello.Component {
+
+  static get observedAttributes() {
+    return ['text'];
+  }
+
+  save() {
+    console.log(this.model);
+  }
+
+  render() {
+    return (0, _morello.morello)(
+      "button",
+      { onClick: this.save },
+      this.getAttribute('text') || 'Save'
+    );
+  }
+}
+
+class XRepeat extends _morello.Component {
 
   constructor() {
     super();
-    this.model = {};
+    this.originalElements = [];
+    this.clonedElements = [];
   }
 
+  renderCallback() {
+
+    this.clonedElements.forEach(c => {
+      this.removeChild(c);
+    });
+    this.clonedElements = [];
+
+    const length = this.model.length - 1;
+    const model = this.model;
+    const children = Array.from(this.children);
+
+    children.forEach(c => {
+      if (typeof c.setModel === 'function') {
+        c.setModel(model[0]);
+      }
+    });
+
+    for (let i = 0; i < length; i++) {
+      children.forEach(c => {
+        const clone = c.cloneNode(true);
+        this.clonedElements.push(clone);
+        this.appendChild(clone);
+        if (typeof clone.setModel === 'function') {
+          clone.setModel(model[i + 1]);
+        }
+      });
+    }
+  }
+
+  render() {
+    return (0, _morello.morello)("slot", null);
+  }
+}
+
+class XRow extends _morello.Component {
+
+  constructor() {
+    super();
+
+    this.root.innerHTML = `
+      <style>
+        .row {
+          display: flex;
+          justify-content: space-between;
+        }
+      </style>
+    `;
+  }
+
+  render() {
+    return (0, _morello.morello)(
+      "div",
+      { "class": "row" },
+      (0, _morello.morello)("slot", null)
+    );
+  }
+}
+
+class XFetch extends _morello.Component {
+
+  connectedCallback() {
+    setTimeout(() => {
+      this.setModel([{
+        id: 1,
+        name: 'Rein',
+        age: 27
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Roger',
+        age: 25
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }]);
+    }, 500);
+  }
+
+  render() {
+    return (0, _morello.morello)("slot", null);
+  }
+}
+
+class XStringView extends _morello.Component {
+
   static get observedAttributes() {
-    return ['field'];
+    return ['field', 'editmode'];
+  }
+
+  get passesModelToChildren() {
+    return false;
+  }
+
+  edit() {
+    this.setAttribute('editmode', true);
+  }
+
+  updateValue() {
+
+    const field = this.getAttribute('field');
+    this.model[field] = this.root.querySelector('input').value;
+    this.removeAttribute('editmode');
   }
 
   render() {
 
     const model = this.model;
     const field = this.getAttribute('field');
+    const editmode = this.getAttribute('editmode');
 
-    return (0, _morello.morello)(
-      "span",
-      null,
-      model[field] ? 'test' : 'lol'
-    );
-  }
-}
-
-class XTodoItem extends _morello.Component {
-
-  constructor() {
-    super();
-    this.model = {
-      editMode: false,
-      isDone: false
-    };
-  }
-
-  static get observedAttributes() {
-    return ['text'];
-  }
-
-  enableEditMode() {
-    this.model.editMode = true;
-    this.refresh();
-  }
-
-  stateChange(e) {
-    this.model.isDone = this._shadowRoot.querySelector('.state-change').checked;
-    this.refresh();
-  }
-
-  updateText() {
-    this.model.editMode = false;
-    this.setAttribute('text', this._shadowRoot.querySelector('.edit-field').value);
-  }
-
-  render() {
-
-    const model = this.model;
-    const text = this.getAttribute('text');
-
-    return (0, _morello.morello)(
-      "span",
-      null,
-      (0, _morello.morello)("input", { type: "checkbox", checked: model.isDone, onClick: this.stateChange, "class": "state-change" }),
-      model.editMode ? (0, _morello.morello)("input", { "class": "edit-field", value: text, onBlur: this.updateText }) : (0, _morello.morello)(
-        "span",
-        { onDblClick: this.enableEditMode, style: 'color: ' + (model.isDone ? 'green' : 'black') + ';' },
-        text + (model.isDone ? ' (done)' : '')
-      )
-    );
-  }
-}
-
-class XTodo extends _morello.Component {
-
-  constructor() {
-    super();
-    this.model = {
-      items: ['nice']
-    };
-  }
-
-  addItem(text) {
-
-    this.model.items.push(text);
-    this.refresh();
-  }
-
-  removeItem(index) {
-    if (window.confirm('Are you sure you wish to remove "' + this.model.items[index] + '" ?')) {
-      this.model.items.splice(index, 1);
-      this.refresh();
+    if (!field) {
+      return;
     }
-  }
 
-  render() {
+    const value = model[field] ? model[field] : '-';
 
-    const items = this.model.items;
+    if (editmode) {
+      return (0, _morello.morello)("input", { value: value, onBlur: this.updateValue });
+    }
 
     return (0, _morello.morello)(
-      "div",
-      null,
-      (0, _morello.morello)(
-        "x-window",
-        { title: 'Todo demo (' + items.length + ')' },
-        items.length ? (0, _morello.morello)(
-          "div",
-          null,
-          items.map((item, i) => {
-            return (0, _morello.morello)(
-              "div",
-              { key: i },
-              (0, _morello.morello)("x-todo-item", { text: item }),
-              (0, _morello.morello)(
-                "button",
-                { onClick: () => this.removeItem(i) },
-                "x"
-              )
-            );
-          })
-        ) : (0, _morello.morello)(
-          "div",
-          null,
-          "Your todo list is empty."
-        ),
-        (0, _morello.morello)(
-          "form",
-          { onSubmit: e => {
-              this.addItem(this._shadowRoot.querySelector('.field').value);e.preventDefault();
-            } },
-          (0, _morello.morello)("input", { "class": "field" }),
-          (0, _morello.morello)(
-            "button",
-            null,
-            "Add"
-          )
-        )
-      )
+      "span",
+      { onClick: this.edit },
+      value
     );
   }
 }
 
 class XWindow extends _morello.Component {
 
-  static get observedAttributes() {
-    return ['title', 'footer'];
-  }
+  constructor() {
+    super();
 
-  rename() {
-    this.setAttribute('title', this._shadowRoot.querySelector('.field').value);
-  }
-
-  enableEditMode() {
-    this.model.editMode = true;
-    this.refresh();
-  }
-
-  disableEditMode() {
-    this.model.editMode = false;
-    this.refresh();
+    this.root.innerHTML = `
+      <style>
+        .header {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px;
+          color: #ffffff;
+          background-color: #000000;
+        }
+        .window {
+          border: 1px solid #000000;
+        }
+        .content {
+          padding: 10px;
+        }
+      </style>
+    `;
   }
 
   render() {
 
     return (0, _morello.morello)(
       "div",
-      null,
+      { "class": "window" },
       (0, _morello.morello)(
         "div",
-        null,
-        this.model.editMode ? (0, _morello.morello)("input", { onKeyUp: this.rename, onBlur: this.disableEditMode, value: this.getAttribute('title'), "class": "field" }) : (0, _morello.morello)(
-          "span",
-          { onDblClick: this.enableEditMode },
-          this.getAttribute('title') || 'Default title'
+        { "class": "header" },
+        this.getAttribute('title') || 'Window',
+        (0, _morello.morello)(
+          "div",
+          { "class": "header-slots" },
+          (0, _morello.morello)("slot", { name: "header" })
         )
       ),
-      (0, _morello.morello)("slot", null)
+      (0, _morello.morello)(
+        "div",
+        { "class": "content" },
+        (0, _morello.morello)("slot", null)
+      )
     );
   }
 }
 
-customElements.define('x-todo', XTodo);
-customElements.define('x-todo-item', XTodoItem);
+customElements.define('x-save', XSave);
+customElements.define('x-repeat', XRepeat);
+customElements.define('x-fetch', XFetch);
+customElements.define('x-row', XRow);
 customElements.define('x-string-view', XStringView);
 customElements.define('x-window', XWindow);
 
-},{"./src/morello":5}],2:[function(require,module,exports){
+},{"./src/morello":5,"./src/obs/observable":7}],2:[function(require,module,exports){
 "use strict";
 
 // import observe from "tnt-observe";
@@ -203,11 +277,41 @@ var _diffpatch2 = _interopRequireDefault(_diffpatch);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class Component extends HTMLElement {
+
   constructor() {
     super();
     this.model = {};
     this._currentVirtualNode = null;
-    this._shadowRoot = this.attachShadow({ mode: 'closed' });
+    if (this.inShadow) {
+      this.root = this.attachShadow({ mode: 'open' });
+    } else {
+      this.root = this;
+    }
+  }
+
+  get passesModelToChildren() {
+    return true;
+  }
+
+  get inShadow() {
+    return true;
+  }
+
+  setModel(model) {
+
+    this.model = model;
+
+    if (this.passesModelToChildren) {
+      const children = Array.from(this.children);
+
+      children.forEach(c => {
+        if (typeof c.setModel === 'function') {
+          c.setModel(this.model);
+        }
+      });
+    }
+
+    this.refresh();
   }
 
   connectedCallback() {
@@ -221,11 +325,13 @@ class Component extends HTMLElement {
   refresh() {
     _diffpatch2.default.setCurrentComponent(this);
     let newVirtualNode = this.render();
-    _diffpatch2.default.updateElement(this._shadowRoot, newVirtualNode, this._currentVirtualNode);
+    _diffpatch2.default.updateElement(this.root, newVirtualNode, this._currentVirtualNode);
     this._currentVirtualNode = newVirtualNode;
+    this.renderCallback();
   }
 
   render() {}
+  renderCallback() {}
 }
 exports.default = Component;
 
@@ -260,7 +366,7 @@ const diffpatch = {
     } else if (diffpatch.isDiff(newNode, oldNode)) {
 
       $parent.replaceChild(_vdoc2.default.createElement(newNode, diffpatch.currentComponent), $parent.childNodes[index]);
-    } else if (newNode.tag) {
+    } else if (newNode.tag && $parent) {
 
       diffpatch.updateAttributes($parent.childNodes[index], newNode.attrs, oldNode.attrs);
 
@@ -286,13 +392,13 @@ const diffpatch = {
     });
   },
   isDiff: function (node1, node2) {
-    return typeof node1 !== typeof node2 || typeof node1 === 'string' && node1 !== node2 || node1.tag !== node2.tag;
+    return typeof node1 !== typeof node2 || (typeof node1 === 'string' || typeof node1 === 'number') && node1 !== node2 || node1.tag !== node2.tag;
   }
 };
 
 exports.default = diffpatch;
 
-},{"./vdoc":7}],4:[function(require,module,exports){
+},{"./vdoc":9}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -329,6 +435,95 @@ exports.Component = _component2.default;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+const triggerChange = function () {
+	if (this._cb) {
+		let result = [];
+		this.forEach(v => result.push(v));
+		this._cb(result);
+	}
+};
+
+const ObservableArray = function (array, cb) {
+	Array.prototype.push.apply(this, array);
+	this._cb = cb;
+	return this;
+};
+
+ObservableArray.prototype = Object.create(Array.prototype);
+
+['push', 'pop', 'shift', 'unshift', 'splice', 'splice', 'sort', 'reverse'].forEach(method => {
+
+	ObservableArray.prototype[method] = function () {
+
+		Array.prototype[method].apply(this, arguments);
+		triggerChange.call(this);
+	};
+});
+
+exports.default = ObservableArray;
+
+},{}],7:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _array = require("./array");
+
+var _array2 = _interopRequireDefault(_array);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const Observable = function (o, cb) {
+
+	const copy = {};
+
+	const processNewValue = function (v, prop) {
+		if (v.constructor === Array) {
+			return observeArray(v, prop);
+		}
+		return v;
+	};
+
+	const observeArray = function (a, prop) {
+		return new _array2.default(a, result => {
+			copy[prop] = result;
+			cb(copy);
+		});
+	};
+
+	for (let prop in o) {
+		copy[prop] = o[prop];
+		o[prop] = processNewValue(o[prop], prop);
+	}
+
+	const handler = {
+		set(original, k, v) {
+			original[k] = processNewValue(v, k);
+			copy[k] = v;
+			cb(copy);
+			return true;
+		},
+		deleteProperty(original, k) {
+			delete original[k];
+			delete copy[k];
+			cb(copy);
+			return true;
+		}
+	};
+
+	return new Proxy(o, handler);
+};
+
+exports.default = Observable;
+
+},{"./array":6}],8:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const util = {
@@ -343,7 +538,7 @@ const util = {
 
 exports.default = util;
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -359,7 +554,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const vdocument = {
   createElement: function (node, $currentComponent = null) {
 
-    if (typeof node === 'string') {
+    if (typeof node === 'string' || typeof node === 'number') {
       return document.createTextNode(node);
     }
 
@@ -430,4 +625,4 @@ const vdocument = {
 
 exports.default = vdocument;
 
-},{"./util":6}]},{},[1]);
+},{"./util":8}]},{},[1]);

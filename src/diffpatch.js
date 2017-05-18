@@ -23,7 +23,7 @@ const diffpatch = {
 
       $parent.replaceChild(vdoc.createElement(newNode, diffpatch.currentComponent), $parent.childNodes[index]);
 
-    } else if (newNode.tag) {
+    } else if (newNode.tag && $parent) {
 
       diffpatch.updateAttributes($parent.childNodes[index], newNode.attrs, oldNode.attrs);
 
@@ -52,7 +52,7 @@ const diffpatch = {
   isDiff: function(node1, node2) {
     return (
         typeof node1 !== typeof node2 ||
-        typeof node1 === 'string' && node1 !== node2 ||
+        ( typeof node1 === 'string' || typeof node1 === 'number' ) && node1 !== node2 ||
         node1.tag !== node2.tag
     );
   }

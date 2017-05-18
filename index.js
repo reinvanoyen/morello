@@ -1,175 +1,241 @@
 "use strict";
 
 import { morello, Component } from "./src/morello";
+import Observable from "./src/obs/observable";
 
-class XStringView extends Component {
+let obj = [
+  {name: 'rein'},
+  {name: 'jos'}
+];
 
-  constructor() {
-    super();
-    this.model = {};
-  }
+let obs = new Observable( obj, res => {
+  console.log(res);
+} );
 
-  static get observedAttributes() {
-    return [ 'field' ];
-  }
-
-  render() {
-
-    const model = this.model;
-    const field = this.getAttribute('field');
-
-    return (
-        <span>{model[field] ? 'test' : 'lol' }</span>
-    );
-  }
-}
-
-class XTodoItem extends Component {
-
-  constructor() {
-    super();
-    this.model = {
-      editMode: false,
-      isDone: false
-    };
-  }
+class XSave extends Component {
 
   static get observedAttributes() {
     return [ 'text' ];
   }
 
-  enableEditMode() {
-    this.model.editMode = true;
-    this.refresh();
-  }
-
-  stateChange(e) {
-    this.model.isDone = this._shadowRoot.querySelector( '.state-change' ).checked;
-    this.refresh();
-  }
-
-  updateText() {
-    this.model.editMode = false;
-    this.setAttribute('text', this._shadowRoot.querySelector('.edit-field').value);
+  save() {
+    console.log(this.model);
   }
 
   render() {
-
-    const model = this.model;
-    const text = this.getAttribute('text');
-
-    return (
-      <span>
-        <input type="checkbox" checked={model.isDone} onClick={this.stateChange} class="state-change" />
-        { model.editMode
-          ?
-          <input class="edit-field" value={text} onBlur={this.updateText} />
-          :
-          (
-            <span onDblClick={this.enableEditMode} style={ 'color: ' + ( model.isDone ? 'green' : 'black' ) + ';' }>
-                {text + ( model.isDone ? ' (done)' : '' )}
-            </span>
-          )
-        }
-      </span>
-    );
+    return <button onClick={this.save}>{this.getAttribute('text') || 'Save'}</button>;
   }
 }
 
-class XTodo extends Component {
+class XRepeat extends Component {
 
   constructor() {
     super();
-    this.model = {
-      items: [
-        'nice'
-      ]
-    };
+    this.originalElements = [];
+    this.clonedElements = [];
   }
 
-  addItem( text ) {
+  renderCallback() {
 
-    this.model.items.push( text );
-    this.refresh();
-  }
+    this.clonedElements.forEach(c => {
+      this.removeChild(c);
+    });
+    this.clonedElements = [];
 
-  removeItem( index ) {
-    if( window.confirm('Are you sure you wish to remove "' + this.model.items[ index ] + '" ?') ) {
-      this.model.items.splice(index, 1);
-      this.refresh();
+    const length = this.model.length - 1;
+    const model = this.model;
+    const children = Array.from(this.children);
+
+    children.forEach(c => {
+      if (typeof c.setModel === 'function') {
+        c.setModel(model[0]);
+      }
+    } );
+
+    for (let i = 0; i < length; i++) {
+      children.forEach(c => {
+        const clone = c.cloneNode(true);
+        this.clonedElements.push(clone);
+        this.appendChild(clone);
+        if (typeof clone.setModel === 'function') {
+          clone.setModel(model[i+1]);
+        }
+      });
     }
   }
 
   render() {
-
-    const items = this.model.items;
-
-    return (
-        <div>
-          <x-window title={'Todo demo (' + items.length + ')'}>
-            { items.length
-              ?
-                <div>
-                  {items.map( ( item, i ) => {
-                    return (
-                      <div key={i}>
-                        <x-todo-item text={item}></x-todo-item>
-                        <button onClick={()=>this.removeItem(i)}>x</button>
-                      </div>
-                    );
-                  } )}
-                </div>
-              :
-                <div>Your todo list is empty.</div>
-            }
-            <form onSubmit={(e)=>{ this.addItem(this._shadowRoot.querySelector('.field').value); e.preventDefault(); }}>
-              <input class="field" />
-              <button>Add</button>
-            </form>
-          </x-window>
-        </div>
-    );
+    return <slot></slot>;
   }
 }
 
-class XWindow extends Component {
+class XRow extends Component {
 
-  static get observedAttributes() {
-    return ['title', 'footer'];
-  }
+  constructor() {
+    super();
 
-  rename() {
-    this.setAttribute('title', this._shadowRoot.querySelector('.field').value);
-  }
-
-  enableEditMode() {
-    this.model.editMode = true;
-    this.refresh();
-  }
-
-  disableEditMode() {
-    this.model.editMode = false;
-    this.refresh();
+    this.root.innerHTML = `
+      <style>
+        .row {
+          display: flex;
+          justify-content: space-between;
+        }
+      </style>
+    `;
   }
 
   render() {
-
     return (
-      <div>
-        <div>
-          { this.model.editMode ?
-            <input onKeyUp={this.rename} onBlur={this.disableEditMode} value={this.getAttribute('title')} class="field" />
-            :
-            <span onDblClick={this.enableEditMode}>{this.getAttribute('title') || 'Default title' }</span>
-          }
-        </div>
+      <div class="row">
         <slot></slot>
       </div>
     );
   }
 }
 
-customElements.define('x-todo', XTodo);
-customElements.define('x-todo-item', XTodoItem);
+class XFetch extends Component {
+
+  connectedCallback() {
+    setTimeout(()=>{
+      this.setModel([{
+        id: 1,
+        name: 'Rein',
+        age: 27
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Roger',
+        age: 25
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }, {
+        id: 2,
+        name: 'Jos',
+        age: 56
+      }]);
+    }, 500);
+  }
+
+  render() {
+    return <slot></slot>;
+  }
+}
+
+class XStringView extends Component {
+
+  static get observedAttributes() {
+    return [ 'field', 'editmode' ];
+  }
+
+  get passesModelToChildren() {
+    return false;
+  }
+
+  edit() {
+    this.setAttribute('editmode', true);
+  }
+
+  updateValue() {
+
+    const field = this.getAttribute('field');
+    this.model[field] = this.root.querySelector('input').value;
+    this.removeAttribute('editmode');
+  }
+
+  render() {
+
+    const model = this.model;
+    const field = this.getAttribute('field');
+    const editmode = this.getAttribute('editmode');
+
+    if ( !field ) {
+      return;
+    }
+
+    const value = ( model[field] ? model[field] : '-' );
+
+    if (editmode) {
+      return <input value={value} onBlur={this.updateValue} />;
+    }
+
+    return <span onClick={this.edit}>{value}</span>;
+  }
+}
+
+class XWindow extends Component {
+
+  constructor() {
+    super();
+
+    this.root.innerHTML = `
+      <style>
+        .header {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px;
+          color: #ffffff;
+          background-color: #000000;
+        }
+        .window {
+          border: 1px solid #000000;
+        }
+        .content {
+          padding: 10px;
+        }
+      </style>
+    `;
+  }
+
+  render() {
+
+    return (
+      <div class="window">
+        <div class="header">
+          {this.getAttribute('title') || 'Window'}
+          <div class="header-slots"><slot name="header"></slot></div>
+        </div>
+        <div class="content"><slot></slot></div>
+      </div>
+    );
+  }
+}
+
+customElements.define('x-save', XSave);
+customElements.define('x-repeat', XRepeat);
+customElements.define('x-fetch', XFetch);
+customElements.define('x-row', XRow);
 customElements.define('x-string-view', XStringView);
 customElements.define('x-window', XWindow);
