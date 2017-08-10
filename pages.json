@@ -1,0 +1,13 @@
+[{
+  "title": "Home",
+  "type": "homepage"
+}, {
+  "title": "About us",
+  "type": "default"
+}, {
+  "title": "Services",
+  "type": "default"
+}, {
+  "title": "Contact",
+  "type": "contact"
+}]
