@@ -2,16 +2,15 @@ import { morello, Component } from "../morello";
 
 class XFetch extends Component {
 
-  fetch() {
+  async fetch() {
 
     let filename = this.getAttribute('file');
 
     if (filename) {
 
-      fetch(filename)
-          .then(response => response.json())
-          .then(obj => this.setModel(obj))
-      ;
+      let response = await fetch(filename);
+      let object = await response.json();
+      this.setModel(object);
     }
   }
 

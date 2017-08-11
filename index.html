@@ -6,28 +6,6 @@
 
 <body>
 
-	<h2>User module example</h2>
-
-	<x-fetch file="users.json">
-
-		<x-window title="Users">
-			<x-save slot="header" text="Save all"></x-save>
-			<x-repeat>
-				<x-row>
-					<x-string-view field="id"></x-string-view>
-					<x-string-view field="name"></x-string-view>
-					<x-string-view field="age"></x-string-view>
-					<x-save text="Save row"></x-save>
-				</x-row>
-			</x-repeat>
-		</x-window>
-
-		<x-repeat>
-			<x-string-view field="name"></x-string-view>
-		</x-repeat>
-
-	</x-fetch>
-
 	<h2>Page module example</h2>
 
 	<x-fetch file="pages.json">
@@ -46,7 +24,12 @@
 	</x-fetch>
 
 	<x-route name="edit-page">
-		<h3>Edit page</h3>
+		<br />
+		<x-window title="Edit page">
+			<x-string-view field="title"></x-string-view><br />
+			<x-string-view field="type"></x-string-view><br />
+			<x-save text="Save"></x-save>
+		</x-window>
 	</x-route>
 
 	<script src="build/index.js"></script>

@@ -8,16 +8,18 @@ class XRoute extends Component {
   }
 
   renderCallback() {
-    Router.add(this.getAttribute('name'), () => {
+    Router.add(this.getAttribute('name'), (model) => {
+      this.setModel(model);
       this.setAttribute('open', true);
     });
   }
 
   render() {
+    console.log(this.getAttribute('open'));
     if (this.getAttribute('open')) {
       return <slot></slot>;
     }
-    return <div>no</div>;
+    return <div></div>;
   }
 }
 

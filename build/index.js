@@ -139,7 +139,7 @@ class XButton extends _morello.Component {
     let route = this.getAttribute('route');
     if (route) {
       window.history.pushState(true, null, route);
-      _router2.default.route();
+      _router2.default.route(this.model);
     }
   }
 
@@ -165,13 +165,15 @@ var _morello = require("../morello");
 
 class XFetch extends _morello.Component {
 
-  fetch() {
+  async fetch() {
 
     let filename = this.getAttribute('file');
 
     if (filename) {
 
-      fetch(filename).then(response => response.json()).then(obj => this.setModel(obj));
+      let response = await fetch(filename);
+      let object = await response.json();
+      this.setModel(object);
     }
   }
 
@@ -261,20 +263,18 @@ class XRoute extends _morello.Component {
   }
 
   renderCallback() {
-    _router2.default.add(this.getAttribute('name'), () => {
+    _router2.default.add(this.getAttribute('name'), model => {
+      this.setModel(model);
       this.setAttribute('open', true);
     });
   }
 
   render() {
+    console.log(this.getAttribute('open'));
     if (this.getAttribute('open')) {
       return (0, _morello.morello)("slot", null);
     }
-    return (0, _morello.morello)(
-      "div",
-      null,
-      "no"
-    );
+    return (0, _morello.morello)("div", null);
   }
 }
 
@@ -557,20 +557,25 @@ exports.morello = _h2.default;
 exports.Component = _component2.default;
 
 },{"./component":2,"./h":12}],14:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const Router = {
+  routes: {},
   add: (name, cb) => {
-    if (!Router.routes) {
-      Router.routes = {};
-    }
     Router.routes[name] = cb;
   },
-  route: () => {
-    console.log(Router.routes);
+  route: model => {
+    let path = document.location.pathname.substring(1),
+        segments = path.split('/');
+
+    segments.forEach(s => {
+      if (Router.routes[s]) {
+        Router.routes[s](model);
+      }
+    });
   }
 };
 

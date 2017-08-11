@@ -7,7 +7,7 @@ class XButton extends Component {
     let route = this.getAttribute('route');
     if (route) {
       window.history.pushState(true, null, route);
-      Router.route();
+      Router.route(this.model);
     }
   }
 
