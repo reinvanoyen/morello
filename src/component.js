@@ -7,7 +7,7 @@ export default class Component extends HTMLElement {
 
   constructor() {
     super();
-    this.model = {};
+    this.enabled = true;
     this._currentVirtualNode = null;
     if (this.inShadow) {
       this.root = this.attachShadow({mode: 'open'});
@@ -16,29 +16,18 @@ export default class Component extends HTMLElement {
     }
   }
 
+  enable() {
+    this.enabled = true;
+    this.refresh();
+    this.enableCallback();
+  }
+
   get passesModelToChildren() {
     return true;
   }
 
   get inShadow() {
     return true;
-  }
-
-  setModel(model) {
-
-    this.model = model;
-
-    if (this.passesModelToChildren) {
-      const children = Array.from(this.children);
-
-      children.forEach(c => {
-        if (typeof c.setModel === 'function') {
-          c.setModel(this.model);
-        }
-      });
-    }
-
-    this.refresh();
   }
 
   connectedCallback() {
@@ -50,13 +39,14 @@ export default class Component extends HTMLElement {
   }
 
   refresh() {
-    diffpatch.setCurrentComponent(this);
-    let newVirtualNode = this.render();
-    diffpatch.updateElement(this.root, newVirtualNode, this._currentVirtualNode);
-    this._currentVirtualNode = newVirtualNode;
-    this.renderCallback();
+    if (this.enabled) {
+      diffpatch.setCurrentComponent(this);
+      let newVirtualNode = this.render();
+      diffpatch.updateElement(this.root, newVirtualNode, this._currentVirtualNode);
+      this._currentVirtualNode = newVirtualNode;
+    }
   }
 
   render() {}
-  renderCallback() {}
+  enableCallback() {}
 }

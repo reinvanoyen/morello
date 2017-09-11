@@ -1,5 +1,4 @@
 import { morello, Component } from "../morello";
-import Router from "../router/router";
 
 class XRoute extends Component {
 
@@ -7,15 +6,7 @@ class XRoute extends Component {
     return [ 'open' ];
   }
 
-  renderCallback() {
-    Router.add(this.getAttribute('name'), (model) => {
-      this.setModel(model);
-      this.setAttribute('open', true);
-    });
-  }
-
   render() {
-    console.log(this.getAttribute('open'));
     if (this.getAttribute('open')) {
       return <slot></slot>;
     }

@@ -18,6 +18,7 @@ class XStringView extends Component {
 
     const field = this.getAttribute('field');
     this.model[field] = this.root.querySelector('input').value;
+    console.log(this.model);
     this.removeAttribute('editmode');
   }
 
@@ -31,7 +32,7 @@ class XStringView extends Component {
       return;
     }
 
-    const value = ( model[field] ? model[field] : '-' );
+    const value = ( model && model[field] ? model[field] : '-' );
 
     if (editmode) {
       return <input value={value} onBlur={this.updateValue} />;

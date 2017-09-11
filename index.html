@@ -6,34 +6,55 @@
 
 <body>
 
-	<h2>Page module example</h2>
+	<x-root>
 
-	<x-fetch file="pages.json">
+		<x-button route="pages">Pages</x-button>
 
-		<x-window title="Pages">
-			<x-save slot="header" text="Save"></x-save>
-			<x-repeat>
-				<x-row>
-					<x-string-view field="title"></x-string-view>
-					<x-string-view field="type"></x-string-view>
-					<x-button route="edit-page">Edit</x-button>
-				</x-row>
-			</x-repeat>
-		</x-window>
+		<x-route name="pages">
+			<x-window title="Pages">
+				<x-button>Pages</x-button>
+			</x-window>
+		</x-route>
 
-	</x-fetch>
-
-	<x-route name="edit-page">
-		<br />
-		<x-window title="Edit page">
-			<x-string-view field="title"></x-string-view><br />
-			<x-string-view field="type"></x-string-view><br />
-			<x-save text="Save"></x-save>
-		</x-window>
-	</x-route>
+	</x-root>
 
 	<script src="build/index.js"></script>
 
 </body>
 
 </html>
+
+<!--
+
+			<x-fetch file="pages.json">
+
+				<x-window title="Pages">
+					<x-save slot="header" text="Save"></x-save>
+					<x-repeat>
+						<x-row>
+							<x-string-view field="title"></x-string-view>
+							<x-string-view field="type"></x-string-view>
+							<x-button route="edit-page">Edit</x-button>
+						</x-row>
+					</x-repeat>
+				</x-window>
+
+			</x-fetch>
+
+			<x-route name="edit-page">
+				<br />
+				<x-window title="Edit page">
+					<x-string-view field="title"></x-string-view><br />
+					<x-string-view field="type"></x-string-view><br />
+					<x-save text="Save"></x-save>
+				</x-window>
+
+				<x-button route="delete">delete</x-button>
+
+				<x-route name="delete">
+					Are you sure you wish to delete <x-string-view field="title"></x-string-view>?
+				</x-route>
+
+			</x-route>
+
+-->

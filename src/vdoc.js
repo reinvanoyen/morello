@@ -40,7 +40,6 @@ const vdocument = {
 
     // is boolean attribute
     if ( typeof value === 'boolean' ) {
-
       if (!value) {
         return;
       } else {

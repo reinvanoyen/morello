@@ -14,7 +14,7 @@ class XFetch extends Component {
     }
   }
 
-  connectedCallback() {
+  enableCallback() {
     this.fetch();
   }
 
