@@ -17,14 +17,47 @@ var _route = require("./src/component/route");
 
 var _route2 = _interopRequireDefault(_route);
 
+var _fetch = require("./src/component/fetch");
+
+var _fetch2 = _interopRequireDefault(_fetch);
+
+var _navbar = require("./src/component/navbar");
+
+var _navbar2 = _interopRequireDefault(_navbar);
+
+var _overlay = require("./src/component/overlay");
+
+var _overlay2 = _interopRequireDefault(_overlay);
+
+var _repeat = require("./src/component/repeat");
+
+var _repeat2 = _interopRequireDefault(_repeat);
+
+var _row = require("./src/component/row");
+
+var _row2 = _interopRequireDefault(_row);
+
+var _stringview = require("./src/component/stringview");
+
+var _stringview2 = _interopRequireDefault(_stringview);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 customElements.define('x-root', _root2.default);
 customElements.define('x-button', _button2.default);
 customElements.define('x-window', _window2.default);
 customElements.define('x-route', _route2.default);
+customElements.define('x-fetch', _fetch2.default);
+customElements.define('x-navbar', _navbar2.default);
+customElements.define('x-overlay', _overlay2.default);
+customElements.define('x-repeat', _repeat2.default);
+customElements.define('x-row', _row2.default);
+customElements.define('x-string-view', _stringview2.default);
 
-},{"./src/component/button":3,"./src/component/root":4,"./src/component/route":5,"./src/component/window":6}],2:[function(require,module,exports){
+// Enable root element
+document.querySelector('x-root').enable();
+
+},{"./src/component/button":3,"./src/component/fetch":4,"./src/component/navbar":5,"./src/component/overlay":6,"./src/component/repeat":7,"./src/component/root":8,"./src/component/route":9,"./src/component/row":10,"./src/component/stringview":11,"./src/component/window":12}],2:[function(require,module,exports){
 "use strict";
 
 // import observe from "tnt-observe";
@@ -43,27 +76,60 @@ class Component extends HTMLElement {
 
   constructor() {
     super();
-    this.enabled = true;
+    this.model = {};
+    this.enabled = false;
     this._currentVirtualNode = null;
-    if (this.inShadow) {
-      this.root = this.attachShadow({ mode: 'open' });
-    } else {
-      this.root = this;
-    }
-  }
-
-  enable() {
-    this.enabled = true;
-    this.refresh();
-    this.enableCallback();
-  }
-
-  get passesModelToChildren() {
-    return true;
+    this.root = this.inShadow ? this.attachShadow({ mode: 'open' }) : this;
   }
 
   get inShadow() {
     return true;
+  }
+
+  get autoEnableChildren() {
+    return true;
+  }
+
+  get autoPassModel() {
+    return true;
+  }
+
+  setModel(model) {
+    this.model = model;
+
+    if (this.autoPassModel) {
+      const children = Array.from(this.children);
+
+      children.forEach(c => {
+        if (typeof c.setModel === 'function') {
+          c.setModel(this.model);
+        }
+      });
+    }
+
+    this.refresh();
+    this.setModelCallback();
+  }
+
+  enable() {
+    this.enabled = true;
+
+    if (this.autoEnableChildren) {
+      this.enableChildren();
+    }
+
+    this.refresh();
+    this.enableCallback();
+  }
+
+  enableChildren() {
+    const children = Array.from(this.children);
+
+    children.forEach(c => {
+      if (typeof c.enable === 'function') {
+        c.enable();
+      }
+    });
   }
 
   connectedCallback() {
@@ -85,10 +151,84 @@ class Component extends HTMLElement {
 
   render() {}
   enableCallback() {}
+  setModelCallback() {}
 }
 exports.default = Component;
 
-},{"./diffpatch":7}],3:[function(require,module,exports){
+},{"./diffpatch":13}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _morello = require('../morello');
+
+var _router = require('../router/router');
+
+var _router2 = _interopRequireDefault(_router);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+class XButton extends _morello.Component {
+
+  constructor() {
+    super();
+    this.path = '';
+    this.root.innerHTML = `
+      <style>
+        button {
+          border: 0;
+          color: #ffffff;
+          background-color: #4B5883;
+          border-radius: 17px;
+          height: 34px;
+          padding: 0 10px;
+          cursor: pointer;
+        
+        }
+        button:hover {
+          background-color: #4B5883;
+        }
+        button:focus {
+          outline: none;
+        }
+        :host-context(x-navbar) button {
+          font-size: 15px;
+          margin-right: 5px;
+          border-radius: 0;
+          background-color: transparent;
+          color: #555;
+        }
+        :host-context(x-navbar) button:hover {
+          background-color: transparent;
+        }
+      </style>
+    `;
+  }
+
+  click() {
+    _router2.default.route(this.path);
+  }
+
+  enableCallback() {
+    if (this.getAttribute('route')) {
+      this.path = (_router2.default.path ? _router2.default.path + '/' : '') + this.getAttribute('route');
+    }
+  }
+
+  render() {
+    return (0, _morello.morello)(
+      'button',
+      { onClick: this.click },
+      (0, _morello.morello)('slot', null)
+    );
+  }
+}
+
+exports.default = XButton;
+
+},{"../morello":15,"../router/router":16}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97,24 +237,187 @@ Object.defineProperty(exports, "__esModule", {
 
 var _morello = require("../morello");
 
-class XButton extends _morello.Component {
+class XFetch extends _morello.Component {
 
-  execute() {
-    alert('mooi');
+  get autoEnableChildren() {
+    return false;
+  }
+
+  async fetch() {
+
+    let filename = this.getAttribute('file');
+
+    if (filename) {
+
+      let response = await fetch(filename);
+      let object = await response.json();
+
+      this.setModel(object);
+      this.enableChildren();
+    }
+  }
+
+  enableCallback() {
+    this.fetch();
   }
 
   render() {
+    return (0, _morello.morello)("slot", null);
+  }
+}
+
+exports.default = XFetch;
+
+},{"../morello":15}],5:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _morello = require("../morello");
+
+class XNavbar extends _morello.Component {
+
+  constructor() {
+    super();
+
+    this.root.innerHTML = `
+      <style>
+        .navbar {
+          padding: 10px;
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+        }
+      </style>
+    `;
+  }
+
+  render() {
+
     return (0, _morello.morello)(
-      "button",
-      { onClick: this.execute },
+      "div",
+      { "class": "navbar" },
       (0, _morello.morello)("slot", null)
     );
   }
 }
 
-exports.default = XButton;
+exports.default = XNavbar;
 
-},{"../morello":9}],4:[function(require,module,exports){
+},{"../morello":15}],6:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _morello = require("../morello");
+
+class XOverlay extends _morello.Component {
+
+  constructor() {
+    super();
+
+    this.root.innerHTML = `
+      <style>
+        .overlay {
+          position: fixed;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: rgba(50,50,50,0.75);
+        }
+      </style>
+    `;
+  }
+
+  render() {
+
+    return (0, _morello.morello)(
+      "div",
+      { "class": "overlay" },
+      (0, _morello.morello)("slot", null)
+    );
+  }
+}
+
+exports.default = XOverlay;
+
+},{"../morello":15}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _morello = require('../morello');
+
+class XRepeat extends _morello.Component {
+
+  constructor() {
+    super();
+    this.originalElements = [];
+    this.clonedElements = [];
+  }
+
+  get autoEnableChildren() {
+    return false;
+  }
+
+  get autoPassModel() {
+    return false;
+  }
+
+  setModelCallback() {
+
+    this.clonedElements.forEach(c => {
+      this.removeChild(c);
+    });
+
+    this.clonedElements = [];
+
+    const model = this.model;
+    const length = this.model.length - 1;
+    const children = Array.from(this.children);
+
+    // Set model of each child and enable
+    children.forEach(c => {
+      if (typeof c.setModel === 'function') {
+        c.enable();
+        c.setModel(model[0]);
+      }
+    });
+
+    // Clone all children and cycle through the model
+    for (let i = 0; i < length; i++) {
+      children.forEach(c => {
+
+        const clone = c.cloneNode(true);
+        this.clonedElements.push(clone);
+        this.appendChild(clone);
+        if (typeof clone.setModel === 'function') {
+          clone.enable();
+          clone.setModel(model[i + 1]);
+        }
+      });
+    }
+  }
+
+  render() {
+    return (0, _morello.morello)('slot', null);
+  }
+}
+
+exports.default = XRepeat;
+
+},{"../morello":15}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -128,24 +431,11 @@ class XRoot extends _morello.Component {
   render() {
     return (0, _morello.morello)("slot", null);
   }
-
-  connectedCallback() {
-
-    this.enable();
-
-    const children = Array.from(this.children);
-
-    children.forEach(c => {
-      if (typeof c.enable === 'function') {
-        c.enable();
-      }
-    });
-  }
 }
 
 exports.default = XRoot;
 
-},{"../morello":9}],5:[function(require,module,exports){
+},{"../morello":15}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -154,10 +444,41 @@ Object.defineProperty(exports, "__esModule", {
 
 var _morello = require('../morello');
 
+var _router = require('../router/router');
+
+var _router2 = _interopRequireDefault(_router);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 class XRoute extends _morello.Component {
 
   static get observedAttributes() {
     return ['open'];
+  }
+
+  get autoEnableChildren() {
+    return false;
+  }
+
+  enableCallback() {
+    // Register the route in the router
+    if (this.getAttribute('name')) {
+      let path = (_router2.default.path ? _router2.default.path + '/' : '') + this.getAttribute('name');
+      _router2.default.add(path, () => {
+        this.execute();
+      }, () => {
+        this.destroy();
+      });
+    }
+  }
+
+  execute() {
+    this.setAttribute('open', true);
+    this.enableChildren();
+  }
+
+  destroy() {
+    this.removeAttribute('open');
   }
 
   render() {
@@ -170,7 +491,79 @@ class XRoute extends _morello.Component {
 
 exports.default = XRoute;
 
-},{"../morello":9}],6:[function(require,module,exports){
+},{"../morello":15,"../router/router":16}],10:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _morello = require("../morello");
+
+class XRow extends _morello.Component {
+
+  constructor() {
+    super();
+
+    this.root.innerHTML = `
+      <style>
+        .row {
+          display: flex;
+          justify-content: space-between;
+        }
+      </style>
+    `;
+  }
+
+  render() {
+    return (0, _morello.morello)(
+      "div",
+      { "class": "row" },
+      (0, _morello.morello)("slot", null)
+    );
+  }
+}
+
+exports.default = XRow;
+
+},{"../morello":15}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _morello = require('../morello');
+
+class XStringView extends _morello.Component {
+
+  static get observedAttributes() {
+    return ['field'];
+  }
+
+  render() {
+
+    const model = this.model;
+    const field = this.getAttribute('field');
+    const editmode = this.getAttribute('editmode');
+
+    if (!field) {
+      return;
+    }
+
+    const value = model && model[field] ? model[field] : '-';
+
+    return (0, _morello.morello)(
+      'span',
+      null,
+      value
+    );
+  }
+}
+
+exports.default = XStringView;
+
+},{"../morello":15}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -186,15 +579,18 @@ class XWindow extends _morello.Component {
 
     this.root.innerHTML = `
       <style>
+        .window {
+          overflow: hidden;
+          background-color: #ffffff;
+        }
         .header {
+          font-family: sans-serif;
           display: flex;
           justify-content: space-between;
-          padding: 10px;
-          color: #ffffff;
-          background-color: #000000;
-        }
-        .window {
-          border: 1px solid #000000;
+          align-items: center;
+          font-size: 20px;
+          padding: 20px 10px;
+          color: #000000;
         }
         .content {
           padding: 10px;
@@ -229,7 +625,7 @@ class XWindow extends _morello.Component {
 
 exports.default = XWindow;
 
-},{"../morello":9}],7:[function(require,module,exports){
+},{"../morello":15}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -292,7 +688,7 @@ const diffpatch = {
 
 exports.default = diffpatch;
 
-},{"./vdoc":11}],8:[function(require,module,exports){
+},{"./vdoc":18}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -304,7 +700,7 @@ function h(tag, attrs, ...children) {
   return { tag, attrs, children };
 }
 
-},{}],9:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -325,7 +721,69 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 exports.morello = _h2.default;
 exports.Component = _component2.default;
 
-},{"./component":2,"./h":8}],10:[function(require,module,exports){
+},{"./component":2,"./h":14}],16:[function(require,module,exports){
+"use strict";
+
+const Router = {
+  path: '',
+  routes: {},
+  executedRoutes: [],
+  add(path, execute, destroy) {
+    Router.routes[path] = [execute, destroy];
+  },
+  route(route) {
+
+    if (Router.path !== route) {
+
+      console.log('routing:', route);
+
+      Router.path = route;
+
+      let segments = Router.path.split('/');
+      let routesToExecute = [];
+
+      let current = '';
+      segments.forEach((segment, i) => {
+        current += (i !== 0 ? '/' : '') + segments[i];
+        routesToExecute.push(current);
+      });
+
+      // Destroy executed routes
+      let routesToNotExecuteAgain = [];
+
+      for (let i = 0; i < Router.executedRoutes.length; i++) {
+        let route = Router.executedRoutes[i];
+        // If this route is also to be executed, we don't destroy it
+        if (routesToExecute.indexOf(route[0]) === -1) {
+          // Destroy the route
+          console.log('-- destroying:', route[0]);
+          route[1]();
+        } else {
+          routesToNotExecuteAgain.push(route[0]);
+        }
+      }
+
+      Router.executedRoutes = [];
+
+      // Execute routes
+      routesToExecute.forEach(path => {
+        if (Router.routes[path]) {
+          if (routesToNotExecuteAgain.indexOf(path) === -1) {
+            console.log('-- executing:', path);
+            Router.routes[path][0]();
+          }
+          Router.executedRoutes.push([path, Router.routes[path][1]]);
+        } else {
+          console.error('-- invalid', path);
+        }
+      });
+    }
+  }
+};
+
+module.exports = Router;
+
+},{}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -343,7 +801,7 @@ const util = {
 
 exports.default = util;
 
-},{}],11:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -429,4 +887,4 @@ const vdocument = {
 
 exports.default = vdocument;
 
-},{"./util":10}]},{},[1]);
+},{"./util":17}]},{},[1]);

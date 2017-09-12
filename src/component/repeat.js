@@ -8,7 +8,15 @@ class XRepeat extends Component {
     this.clonedElements = [];
   }
 
-  renderCallback() {
+  get autoEnableChildren() {
+    return false;
+  }
+
+  get autoPassModel() {
+    return false;
+  }
+
+  setModelCallback() {
 
     this.clonedElements.forEach(c => {
       this.removeChild(c);
@@ -23,11 +31,10 @@ class XRepeat extends Component {
     // Set model of each child and enable
     children.forEach(c => {
       if (typeof c.setModel === 'function') {
+        c.enable();
         c.setModel(model[0]);
       }
     });
-
-    //this.appendChild( document.createTextNode('lol') );
 
     // Clone all children and cycle through the model
     for (let i = 0; i < length; i++) {
@@ -37,6 +44,7 @@ class XRepeat extends Component {
         this.clonedElements.push(clone);
         this.appendChild(clone);
         if (typeof clone.setModel === 'function') {
+          clone.enable();
           clone.setModel(model[i+1]);
         }
       });

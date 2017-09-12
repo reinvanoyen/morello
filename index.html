@@ -2,17 +2,103 @@
 
 <head>
 	<title>Test</title>
+	<link rel="stylesheet" href="css/main.css" />
 </head>
 
 <body>
 
 	<x-root>
 
-		<x-button route="pages">Pages</x-button>
+		<x-navbar>
+			<x-button route="pages">Pages</x-button>
+			<x-button route="users">Projects</x-button>
+			<x-button route="photos">Photos</x-button>
+			<x-button route="settings">Settings</x-button>
+		</x-navbar>
 
 		<x-route name="pages">
+
 			<x-window title="Pages">
-				<x-button>Pages</x-button>
+
+				<x-button route="create" slot="header">New page</x-button>
+
+				<x-fetch file="pages.json">
+
+					<x-repeat>
+						<x-row>
+							<x-string-view field="title"></x-string-view> <x-string-view field="type"></x-string-view> <x-button route="edit">edit</x-button>
+						</x-row>
+					</x-repeat>
+
+					<x-route name="edit">
+						<x-overlay>
+							<x-window title="Edit page">
+								Whatever edit the page.
+							</x-window>
+						</x-overlay>
+					</x-route>
+
+				</x-fetch>
+
+				<x-route name="create">
+					<x-overlay>
+						<x-window title="Create a new page">
+							<div>
+								<label>
+									Title
+									<input type="text" />
+								</label>
+							</div>
+							<x-button>Create new page</x-button>
+						</x-window>
+					</x-overlay>
+				</x-route>
+
+			</x-window>
+
+		</x-route>
+
+		<x-route name="users">
+
+			<x-window title="Users">
+
+				<x-fetch file="users.json">
+
+					<x-repeat>
+						<x-row>
+							<x-string-view field="id"></x-string-view> <x-string-view field="name"></x-string-view> <x-string-view field="age"></x-string-view> <x-button route="edit">edit</x-button>
+						</x-row>
+					</x-repeat>
+
+					<x-route name="edit">
+						<x-overlay>
+							<x-window title="Edit user">
+								Whatever edit the user
+							</x-window>
+						</x-overlay>
+					</x-route>
+
+				</x-fetch>
+
+			</x-window>
+
+		</x-route>
+
+		<x-route name="photos">
+			<x-window title="Photos">
+				<x-button route="whatever">Whatever</x-button>
+				<x-route name="whatever">
+					<div>
+						HAHAHA WHATEVER <h1>Still html bro</h1>
+					</div>
+				</x-route>
+			</x-window>
+		</x-route>
+
+		<x-route name="settings">
+			<x-window title="Nice, its HTML">
+				Lol dude, just HTML you know.<br />
+				<img src="morello.jpg" />
 			</x-window>
 		</x-route>
 
@@ -23,38 +109,3 @@
 </body>
 
 </html>
-
-<!--
-
-			<x-fetch file="pages.json">
-
-				<x-window title="Pages">
-					<x-save slot="header" text="Save"></x-save>
-					<x-repeat>
-						<x-row>
-							<x-string-view field="title"></x-string-view>
-							<x-string-view field="type"></x-string-view>
-							<x-button route="edit-page">Edit</x-button>
-						</x-row>
-					</x-repeat>
-				</x-window>
-
-			</x-fetch>
-
-			<x-route name="edit-page">
-				<br />
-				<x-window title="Edit page">
-					<x-string-view field="title"></x-string-view><br />
-					<x-string-view field="type"></x-string-view><br />
-					<x-save text="Save"></x-save>
-				</x-window>
-
-				<x-button route="delete">delete</x-button>
-
-				<x-route name="delete">
-					Are you sure you wish to delete <x-string-view field="title"></x-string-view>?
-				</x-route>
-
-			</x-route>
-
--->

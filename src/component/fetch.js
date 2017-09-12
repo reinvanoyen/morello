@@ -2,6 +2,10 @@ import { morello, Component } from "../morello";
 
 class XFetch extends Component {
 
+  get autoEnableChildren() {
+    return false;
+  }
+
   async fetch() {
 
     let filename = this.getAttribute('file');
@@ -10,7 +14,9 @@ class XFetch extends Component {
 
       let response = await fetch(filename);
       let object = await response.json();
+
       this.setModel(object);
+      this.enableChildren();
     }
   }
 

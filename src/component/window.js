@@ -7,15 +7,18 @@ class XWindow extends Component {
 
     this.root.innerHTML = `
       <style>
+        .window {
+          overflow: hidden;
+          background-color: #ffffff;
+        }
         .header {
+          font-family: sans-serif;
           display: flex;
           justify-content: space-between;
-          padding: 10px;
-          color: #ffffff;
-          background-color: #000000;
-        }
-        .window {
-          border: 1px solid #000000;
+          align-items: center;
+          font-size: 20px;
+          padding: 20px 10px;
+          color: #000000;
         }
         .content {
           padding: 10px;
