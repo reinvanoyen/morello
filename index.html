@@ -31,11 +31,10 @@
 					</x-repeat>
 
 					<x-route name="edit">
-						<x-overlay>
-							<x-window title="Edit page">
-								Whatever edit the page.
-							</x-window>
-						</x-overlay>
+						<x-window title="Edit page">
+							<x-string-view field="title"></x-string-view><br />
+							<x-string-view field="type"></x-string-view><br />
+						</x-window>
 					</x-route>
 
 				</x-fetch>

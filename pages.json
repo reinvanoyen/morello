@@ -1,16 +1,21 @@
 [{
+  "id": 1,
   "title": "Home",
   "type": "homepage"
 }, {
+  "id": 2,
   "title": "About us",
   "type": "default"
 }, {
+  "id": 3,
   "title": "Services",
   "type": "default"
 }, {
+  "id": 4,
   "title": "Contact",
   "type": "contact"
 }, {
+  "id": 5,
   "title": "Contact",
   "type": "contact"
 }]

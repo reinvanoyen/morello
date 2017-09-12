@@ -39,7 +39,7 @@ class XButton extends Component {
   }
 
   click() {
-    Router.route(this.path);
+    Router.route(this.path, this.model);
   }
 
   enableCallback() {

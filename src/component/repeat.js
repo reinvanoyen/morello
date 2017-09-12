@@ -31,8 +31,8 @@ class XRepeat extends Component {
     // Set model of each child and enable
     children.forEach(c => {
       if (typeof c.setModel === 'function') {
-        c.enable();
         c.setModel(model[0]);
+        c.enable();
       }
     });
 
@@ -44,8 +44,8 @@ class XRepeat extends Component {
         this.clonedElements.push(clone);
         this.appendChild(clone);
         if (typeof clone.setModel === 'function') {
-          clone.enable();
           clone.setModel(model[i+1]);
+          clone.enable();
         }
       });
     }

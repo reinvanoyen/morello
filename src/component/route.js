@@ -15,7 +15,8 @@ class XRoute extends Component {
     // Register the route in the router
     if (this.getAttribute('name')) {
       let path = ( Router.path ? Router.path + '/' : '' ) + this.getAttribute('name');
-      Router.add(path, () => {
+      Router.add(path, (model) => {
+        this.setModel(model);
         this.execute();
       }, () => {
         this.destroy()

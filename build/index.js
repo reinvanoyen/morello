@@ -208,7 +208,7 @@ class XButton extends _morello.Component {
   }
 
   click() {
-    _router2.default.route(this.path);
+    _router2.default.route(this.path, this.model);
   }
 
   enableCallback() {
@@ -390,8 +390,8 @@ class XRepeat extends _morello.Component {
     // Set model of each child and enable
     children.forEach(c => {
       if (typeof c.setModel === 'function') {
-        c.enable();
         c.setModel(model[0]);
+        c.enable();
       }
     });
 
@@ -403,8 +403,8 @@ class XRepeat extends _morello.Component {
         this.clonedElements.push(clone);
         this.appendChild(clone);
         if (typeof clone.setModel === 'function') {
-          clone.enable();
           clone.setModel(model[i + 1]);
+          clone.enable();
         }
       });
     }
@@ -464,7 +464,8 @@ class XRoute extends _morello.Component {
     // Register the route in the router
     if (this.getAttribute('name')) {
       let path = (_router2.default.path ? _router2.default.path + '/' : '') + this.getAttribute('name');
-      _router2.default.add(path, () => {
+      _router2.default.add(path, model => {
+        this.setModel(model);
         this.execute();
       }, () => {
         this.destroy();
@@ -731,53 +732,67 @@ const Router = {
   add(path, execute, destroy) {
     Router.routes[path] = [execute, destroy];
   },
-  route(route) {
+  route(route, model) {
 
-    if (Router.path !== route) {
+    console.log('routing:', route);
 
-      console.log('routing:', route);
+    Router.path = route;
 
-      Router.path = route;
+    let segments = Router.path.split('/');
+    let routesToExecute = [];
 
-      let segments = Router.path.split('/');
-      let routesToExecute = [];
+    let current = '';
+    segments.forEach((segment, i) => {
+      current += (i !== 0 ? '/' : '') + segments[i];
+      routesToExecute.push(current);
+    });
 
-      let current = '';
-      segments.forEach((segment, i) => {
-        current += (i !== 0 ? '/' : '') + segments[i];
-        routesToExecute.push(current);
-      });
+    // Destroy executed routes
+    let routesToNotExecuteAgain = [];
 
-      // Destroy executed routes
-      let routesToNotExecuteAgain = [];
+    for (let i = 0; i < Router.executedRoutes.length; i++) {
 
-      for (let i = 0; i < Router.executedRoutes.length; i++) {
-        let route = Router.executedRoutes[i];
-        // If this route is also to be executed, we don't destroy it
-        if (routesToExecute.indexOf(route[0]) === -1) {
-          // Destroy the route
-          console.log('-- destroying:', route[0]);
-          route[1]();
-        } else {
-          routesToNotExecuteAgain.push(route[0]);
-        }
+      let route = Router.executedRoutes[i];
+
+      // If this route is also to be executed, we don't destroy it
+      if (routesToExecute.indexOf(route.path) > -1) {
+
+        // @TODO check if we should execute this route (base on the current model and the model set in the route)
+        console.log(route);
+
+        //if (!route.modelId || route.modelId === model.id) {
+        routesToNotExecuteAgain.push(route.path);
+        //}
+      } else {
+        // Destroy the route
+        console.log('-- destroying:', route.path);
+        route.destroy();
       }
-
-      Router.executedRoutes = [];
-
-      // Execute routes
-      routesToExecute.forEach(path => {
-        if (Router.routes[path]) {
-          if (routesToNotExecuteAgain.indexOf(path) === -1) {
-            console.log('-- executing:', path);
-            Router.routes[path][0]();
-          }
-          Router.executedRoutes.push([path, Router.routes[path][1]]);
-        } else {
-          console.error('-- invalid', path);
-        }
-      });
     }
+
+    Router.executedRoutes = [];
+
+    // Execute routes
+    routesToExecute.forEach(path => {
+
+      if (Router.routes[path]) {
+
+        if (routesToNotExecuteAgain.indexOf(path) === -1) {
+
+          console.log('-- executing:', path);
+          Router.routes[path][0](model);
+        }
+
+        Router.executedRoutes.push({
+          path: path,
+          modelId: model.id ? model.id : false,
+          destroy: Router.routes[path][1]
+        });
+      } else {
+
+        console.error('-- invalid', path);
+      }
+    });
   }
 };
 
