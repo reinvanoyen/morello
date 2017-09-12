@@ -22,29 +22,22 @@ const Router = {
         routesToExecute.push(current);
       });
 
-      // Destroy executed routes
-      let routesToNotExecuteAgain = [];
+      // @TODO make 2 arrays, one of routes to destroy and one of routes to execute
+      let routesToDestroy = Router.executedRoutes.filter(route => {
+        return ( routesToExecute.indexOf(route.path) === -1 );
+      });
 
-      for (let i = 0; i < Router.executedRoutes.length; i++) {
-
-        let route = Router.executedRoutes[i];
-
-        // If this route is also to be executed, we don't destroy it
+      let routesToNotExecuteAgain = Router.executedRoutes.map(route => { // @TODO reverse the list -> only routes that need to be executed
         if (routesToExecute.indexOf(route.path) > -1) {
-
-          // @TODO check if we should execute this route (base on the current model and the model set in the route)
-          console.log( route );
-
-          //if (!route.modelId || route.modelId === model.id) {
-            routesToNotExecuteAgain.push(route.path);
-          //}
-
-        } else {
-          // Destroy the route
-          console.log('-- destroying:', route.path);
-          route.destroy();
+          return route.path;
         }
-      }
+      });
+
+      // Destroy routes
+      routesToDestroy.forEach(route => {
+        console.log('-- destroying:', route.path);
+        route.destroy();
+      });
 
       Router.executedRoutes = [];
 
